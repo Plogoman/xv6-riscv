@@ -43,7 +43,7 @@ consputc(int c)
 
 struct {
   struct spinlock lock;
-  
+
   // input
 #define INPUT_BUF_SIZE 128
   char buf[INPUT_BUF_SIZE];
@@ -132,6 +132,8 @@ consoleread(int user_dst, uint64 dst, int n)
 // do erase/kill processing, append to cons.buf,
 // wake up consoleread() if a whole line has arrived.
 //
+int kbd_intr_count = 0;
+
 void
 consoleintr(int c)
 {
@@ -174,7 +176,7 @@ consoleintr(int c)
     }
     break;
   }
-  
+  ++kbd_intr_count;
   release(&cons.lock);
 }
 
