@@ -124,7 +124,7 @@ mkfs/mkfs: mkfs/mkfs.c $K/fs.h $K/param.h
 .PRECIOUS: %.o
 
 UPROGS=\
-	$U/_kbdcount\
+	$U/_kbdint\
 	$U/_add\
 	$U/_fact\
 	$U/_sleep\
