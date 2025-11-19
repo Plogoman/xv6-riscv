@@ -7,9 +7,22 @@
         "**/*.S": true,
         "**/_*": true
     },
-    "editor.tabSize": 2,
+    "editor.tabSize": 4,
     "editor.trimAutoWhitespace": true,
     "files.trimTrailingWhitespace": true,
     "files.trimFinalNewlines": true,
-    "files.insertFinalNewline": true
+    "files.insertFinalNewline": true,
+    "editor.detectIndentation": false,
+    "editor.insertSpaces": false,
+    "editor.formatOnSave": false,
+    "editor.formatOnType": false,
+    "editor.formatOnPaste": false,
+    "[c]": {
+        "editor.semanticHighlighting.enabled": true,
+        "editor.detectIndentation": false,
+        "editor.insertSpaces": false,
+        "editor.tabSize": 4,
+        "editor.formatOnSave": false
+    },
+    "C_Cpp.formatting": "disabled"
 }
