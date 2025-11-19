@@ -10,7 +10,7 @@ int main(int argc, char const *argv[])
 	}
 
 	if (argc != 2) {
-		printf("You can only calculate the factorial of two numbers\n");
+		printf("You can only get the factorial of a single number!\n");
     	exit(0);
 	}
 
