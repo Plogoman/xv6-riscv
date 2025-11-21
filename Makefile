@@ -127,6 +127,13 @@ UPROGS=\
 	$U/_kbdint\
 	$U/_add\
 	$U/_fact\
+	$U/_find\
+	$U/_touch\
+	$U/_mv\
+	$U/_cp\
+	$U/_tail\
+	$U/_diff\
+	$U/_testcount\
 	$U/_sleep\
 	$U/_cat\
 	$U/_echo\
