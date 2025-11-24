@@ -24,5 +24,12 @@
         "editor.tabSize": 4,
         "editor.formatOnSave": false
     },
-    "C_Cpp.formatting": "disabled"
+	"C_Cpp.formatting": "disabled",
+	"files.associations": {
+		"memlayout.h": "c",
+		"defs.h": "c",
+		"riscv.h": "c",
+		"proc.h": "c",
+		"param.h": "c"
+	}
 }

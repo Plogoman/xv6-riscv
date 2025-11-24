@@ -81,7 +81,7 @@ sys_kill(void)
 
 // return how many clock tick interrupts have occurred
 // since start.
-uint64
+/* uint64
 sys_uptime(void)
 {
   uint xticks;
@@ -90,13 +90,30 @@ sys_uptime(void)
   xticks = ticks;
   release(&tickslock);
   return xticks;
+}*/
+
+uint64 sys_getppid(void) {
+  struct proc *p = myproc();
+
+  acquire(&p->lock);
+  if (p->parent) {
+    release(&p->lock);
+    return p->parent->pid;
+  } else {
+    release(&p->lock);
+    return 0;
+  }
 }
 
-uint64 sys_countsyscall(void) {
-    int n;
-    argint(0, &n);
-    struct proc *p = myproc();
-    if(n < 0 || n >= 32)
-        return -1;
-    return p->syscall_count[n];
+uint64 sys_getptable(void) {
+  int nproc;
+  uint64 addr;
+
+  argint(0, &nproc);
+  argaddr(1, &addr);
+
+  if(addr == 0)
+    return -1;
+
+  return getptable(nproc, (char*)addr);
 }

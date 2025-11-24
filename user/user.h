@@ -1,4 +1,23 @@
+#include "kernel/types.h"
+
 struct stat;
+// Date and time structure
+struct datetime {
+  int year;
+  int month;
+  int day;
+  int hour;
+  int minute;
+  int second;
+};
+
+struct proc_info {
+  int pid;
+  int ppid;
+  int state;
+  uint64 sz;
+  char name[16];
+};
 
 // system calls
 int fork(void);
@@ -24,7 +43,12 @@ int sleep(int);
 int uptime(void);
 int kbdint(void);
 int countsyscall(int);
-
+int getppid(void);
+int getptable(int, struct proc_info*);
+int datetime(struct datetime*);
+int myrand(void);
+int uptime(void);
+int shutdown(void);
 
 // ulib.c
 int stat(const char*, struct stat*);

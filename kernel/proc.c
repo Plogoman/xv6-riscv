@@ -697,3 +697,46 @@ procdump(void)
     printf("\n");
   }
 }
+
+int getppid(void) {
+  struct proc *p = myproc();
+  acquire(&p->lock);
+  int ppid = p->parent ? p->parent->pid : 0;
+  release(&p->lock);
+  return ppid;
+}
+
+int getptable(int nproc, char *user_buffer) {
+  struct proc *p;
+  struct proc_info pinfo;
+  int count = 0;
+  uint64 user_addr = (uint64)user_buffer;
+
+  if(nproc <= 0 || user_buffer == 0)
+    return 0;
+
+  for(p = proc; p < &proc[NPROC] && count < nproc; p++) {
+    acquire(&p->lock);
+    if(p->state != UNUSED) {
+      memset(&pinfo, 0, sizeof(pinfo));
+      pinfo.pid = p->pid;
+      pinfo.ppid = p->parent ? p->parent->pid : 0;
+      pinfo.state = p->state;
+      pinfo.sz = p->sz;
+      safestrcpy(pinfo.name, p->name, sizeof(pinfo.name));
+      release(&p->lock);
+
+      // FIXED: Check for < 0 (failure), not != sizeof()
+      if(copyout(myproc()->pagetable, user_addr + (count * sizeof(pinfo)),
+                 (char*)&pinfo, sizeof(pinfo)) < 0) {
+        printf("copyout FAILED at count=%d\n", count);
+        return 0;
+      }
+      count++;
+    } else {
+      release(&p->lock);
+    }
+  }
+  printf("getptable returning %d processes\n", count);
+  return count;
+}
