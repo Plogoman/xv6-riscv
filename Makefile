@@ -134,7 +134,7 @@ UPROGS=\
 	$U/_cp\
 	$U/_tail\
 	$U/_diff\
-	$U/_testcount\
+	$U/_countsyscall\
 	$U/_ps\
 	$U/_datetime\
 	$U/_rand\
