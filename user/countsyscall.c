@@ -4,12 +4,12 @@
 
 int main(int argc, char *argv[]) {
     if (argc == 2 && strcmp(argv[1], "?") == 0) {
-        printf("Usage: testcountsyscall\nRuns a test suite for the countsyscall system call.\n");
+        printf("Usage: countsyscall\nRuns a test suite for the countsyscall system call.\n");
         exit(0);
     }
 
     if (argc != 1) {
-        fprintf(2, "Usage: testcountsyscall\n(Use 'testcountsyscall ?' for help)\n");
+        fprintf(2, "Usage: countsyscall\n(Use 'countsyscall ?' for help)\n");
         exit(1);
     }
 
