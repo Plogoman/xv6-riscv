@@ -37,8 +37,9 @@ void find(char *path, char *filename) {
     *p++ = '/';
 
     while(read(fd, &de, sizeof(de)) == sizeof(de)){
-        if(de.inum == 0)
+        if(de.inum == 0 || strcmp(de.name, ".") == 0 || strcmp(de.name, "..") == 0)
             continue;
+
         memmove(p, de.name, DIRSIZ);
         p[DIRSIZ] = 0;
 
@@ -46,10 +47,6 @@ void find(char *path, char *filename) {
             fprintf(2, "find: cannot stat %s\n", buf);
             continue;
         }
-
-        // Skip . and ..
-        if(strcmp(de.name, ".") == 0 || strcmp(de.name, "..") == 0)
-            continue;
 
         if(strcmp(de.name, filename) == 0){
             printf("%s\n", buf);
@@ -63,8 +60,13 @@ void find(char *path, char *filename) {
 }
 
 int main(int argc, char *argv[]) {
+    if (argc == 2 && strcmp(argv[1], "?") == 0) {
+        printf("Usage: find <directory> <filename>\nRecursively searches for a file in a directory.\n");
+        exit(0);
+    }
+
     if(argc != 3){
-        fprintf(2, "Usage: find <directory> <filename>\n");
+        fprintf(2, "Usage: find <directory> <filename>\n(Use 'find ?' for help)\n");
         exit(1);
     }
     find(argv[1], argv[2]);
