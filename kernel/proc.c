@@ -6,6 +6,8 @@
 #include "proc.h"
 #include "defs.h"
 
+int sched_mode = SCHED_ROUND_ROBIN;  // Declare global scheduler mode
+
 struct cpu cpus[NCPU];
 
 struct proc proc[NPROC];
@@ -150,6 +152,15 @@ found:
   p->context.ra = (uint64)forkret;
   p->context.sp = p->kstack + PGSIZE;
 
+  acquire(&tickslock);
+  p->creation_time = ticks;
+  p->ready_time = ticks;
+  release(&tickslock);
+
+  p->run_time = 0;
+  p->total_wait_time = 0;
+  p->priority = 10;
+
   return p;
 }
 
@@ -173,6 +184,8 @@ freeproc(struct proc *p)
   p->killed = 0;
   p->xstate = 0;
   p->state = UNUSED;
+  p->creation_time = ticks;
+  p->run_time = 0;
 }
 
 // Create a user page table for a given process, with no user memory,
@@ -324,6 +337,11 @@ fork(void)
 
   acquire(&np->lock);
   np->state = RUNNABLE;
+
+  acquire(&tickslock);
+  np->ready_time = ticks;
+  release(&tickslock);
+
   release(&np->lock);
 
   return pid;
@@ -383,6 +401,12 @@ exit(int status)
   p->state = ZOMBIE;
 
   release(&wait_lock);
+
+  acquire(&tickslock);
+  uint64 end = ticks;
+  release(&tickslock);
+
+  printf("PID %d: Turnaround=%ld, Waiting=%ld, Priority=%d\n", p->pid, (end - p->creation_time), p->total_wait_time, p->priority);
 
   // Jump into the scheduler, never to return.
   sched();
@@ -445,6 +469,60 @@ wait(uint64 addr)
 //  - swtch to start running that process.
 //  - eventually that process transfers control
 //    via swtch back to the scheduler.
+
+void
+update_time()
+{
+  struct proc* p;
+  for (p = proc; p < &proc[NPROC]; p++) {
+    acquire(&p->lock);
+    if (p->state == RUNNING) {
+      p->run_time++;
+    }
+
+    release(&p->lock);
+  }
+}
+
+struct proc *choose_next_process() {
+  struct proc *p;
+  struct proc *best_p = 0;
+
+  if (sched_mode == SCHED_ROUND_ROBIN) {
+    // Standard xv6 Round Robin: just pick the first RUNNABLE found
+    for(p = proc; p < &proc[NPROC]; p++) {
+      if(p->state == RUNNABLE)
+        return p;
+    }
+  }
+  else if (sched_mode == SCHED_FCFS) {
+    // FCFS: Pick RUNNABLE with oldest creation_time
+    for(p = proc; p < &proc[NPROC]; p++) {
+      if (p->state == RUNNABLE) {
+        if (best_p == 0 || p->creation_time < best_p->creation_time)
+          best_p = p;
+      }
+    }
+    return best_p;
+  }
+  else if (sched_mode == SCHED_PRIORITY) {
+    // Priority: Pick RUNNABLE with lowest priority value (highest priority)
+    for(p = proc; p < &proc[NPROC]; p++) {
+      if (p->state == RUNNABLE) {
+        if (best_p == 0 || p->priority < best_p->priority) {
+          best_p = p;
+        } else if (p->priority == best_p->priority) {
+          // Tie-breaker: FIFO (creation_time)
+          if (p->creation_time < best_p->creation_time)
+            best_p = p;
+        }
+      }
+    }
+    return best_p;
+  }
+  return 0;
+}
+
 void
 scheduler(void)
 {
@@ -459,19 +537,25 @@ scheduler(void)
     intr_on();
 
     int found = 0;
-    for(p = proc; p < &proc[NPROC]; p++) {
+
+    p = choose_next_process();
+
+        if(p != 0) {
       acquire(&p->lock);
       if(p->state == RUNNABLE) {
-        // Switch to chosen process.  It is the process's job
-        // to release its lock and then reacquire it
-        // before jumping back to us.
+        acquire(&tickslock);
+        uint64 wait_duration = ticks - p->ready_time;
+        release(&tickslock);
+
+        p->total_wait_time += wait_duration;
+
         p->state = RUNNING;
+
         c->proc = p;
         swtch(&c->context, &p->context);
 
-        // Process is done running for now.
-        // It should have changed its p->state before coming back.
         c->proc = 0;
+
         found = 1;
       }
       release(&p->lock);
@@ -512,12 +596,18 @@ sched(void)
 }
 
 // Give up the CPU for one scheduling round.
+// In proc.c
 void
 yield(void)
 {
   struct proc *p = myproc();
   acquire(&p->lock);
   p->state = RUNNABLE;
+
+  acquire(&tickslock);
+  p->ready_time = ticks; // Reset wait clock
+  release(&tickslock);
+
   sched();
   release(&p->lock);
 }
@@ -589,11 +679,14 @@ wakeup(void *chan)
       acquire(&p->lock);
       if(p->state == SLEEPING && p->chan == chan) {
         p->state = RUNNABLE;
+
+        p->ready_time = ticks;
       }
       release(&p->lock);
     }
   }
 }
+
 
 // Kill the process with the given pid.
 // The victim won't exit until it tries to return
@@ -739,4 +832,22 @@ int getptable(int nproc, char *user_buffer) {
   }
   printf("getptable returning %d processes\n", count);
   return count;
+}
+
+void set_sched_mode(int mode) {
+  sched_mode = mode;
+}
+
+int set_priority(int pid, int priority) {
+  struct proc *p;
+  for(p = proc; p < &proc[NPROC]; p++){
+    acquire(&p->lock);
+    if(p->pid == pid){
+      p->priority = priority;
+      release(&p->lock);
+      return 0;
+    }
+    release(&p->lock);
+  }
+  return -1;
 }

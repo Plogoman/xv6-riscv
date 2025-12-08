@@ -140,6 +140,7 @@ UPROGS=\
 	$U/_rand\
 	$U/_uptime\
 	$U/_shutdown\
+	$U/_schedtest\
 	$U/_sleep\
 	$U/_cat\
 	$U/_echo\

@@ -1,6 +1,12 @@
 #include "types.h"
 #include "param.h"
 
+#define SCHED_ROUND_ROBIN 0
+#define SCHED_FCFS        1
+#define SCHED_PRIORITY    2
+
+extern int sched_mode;
+
 // Saved registers for kernel context switches.
 struct context {
   uint64 ra;
@@ -96,7 +102,6 @@ struct proc {
   int pid;                     // Process ID
   int syscall_count[32];       // Track syscall counts
 
-
   // wait_lock must be held when using this:
   struct proc *parent;         // Parent process
 
@@ -109,6 +114,13 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
+
+  int priority;                // Process priority (lower = higher priority)
+  uint64 ready_time;           // Time when process entered RUNNABLE state
+  uint64 total_wait_time;      // Accumulated time spent in ready queue
+
+  uint creation_time;          // Ticks when process was created
+  uint run_time;               // How long the process has run
 };
 
 struct proc_info

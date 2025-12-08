@@ -15,9 +15,9 @@ int main(int argc, char const *argv[])
 
       // Mark current process
       if(pinfo[i].pid == current_pid) {
-        printf("*** ");
+        printf("* ");
       } else {
-        printf("    ");
+        printf("  ");
       }
 
       // Convert state to string

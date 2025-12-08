@@ -6,6 +6,9 @@
 #include "spinlock.h"
 #include "proc.h"
 
+extern int set_priority(int pid, int priority);
+extern void set_sched_mode(int mode);
+
 uint64
 sys_exit(void)
 {
@@ -106,4 +109,29 @@ uint64 sys_getptable(void) {
     return -1;
 
   return getptable(nproc, (char*)addr);
+}
+
+uint64
+sys_set_priority(void)
+{
+  int pid, priority;
+
+  argint(0, &pid);
+  argint(1, &priority);
+
+  return set_priority(pid, priority);
+}
+
+uint64
+sys_set_sched_policy(void)
+{
+  int policy;
+
+  argint(0, &policy);
+
+  if (policy < 0 || policy > 2)
+      return -1;
+
+  set_sched_mode(policy);
+  return 0;
 }

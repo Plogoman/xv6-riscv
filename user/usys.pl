@@ -43,3 +43,5 @@ entry("getptable");
 entry("datetime");
 entry("myrand");
 entry("shutdown");
+entry("set_priority");
+entry("set_sched_policy");

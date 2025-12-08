@@ -108,6 +108,9 @@ int             either_copyin(void *dst, int user_src, uint64 src, uint64 len);
 void            procdump(void);
 int             getppid(void);
 int             getptable(int nproc, char *buffer);
+void            update_time();
+void            set_sched_mode(int mode);
+int             set_priority(int pid, int priority);
 
 // swtch.S
 void            swtch(struct context*, struct context*);

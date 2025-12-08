@@ -49,6 +49,9 @@ int datetime(struct datetime*);
 int myrand(void);
 int uptime(void);
 int shutdown(void);
+int set_priority(int pid, int priority);
+int set_sched_policy(int policy);
+
 
 // ulib.c
 int stat(const char*, struct stat*);
